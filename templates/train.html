@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Train</title>
+</head>
+<body>
+<form action= "/train" method="POST">
+<select name=get_user>
+
+    {% for user in users %}
+    <option value="{{user}}" {% if user_selected==user %} selected="selected"{% endif %}>{{user}}</option>"
+    {% endfor %}
+
+</select>
+<input type="submit" name="View" value="View Photos">
+<input type="submit" name="Del" style="color:red" value="Delete"><BR>
+<input type="submit" name="Train" style="color:green" value="Train">
+</form>
+<BR>
+{% for photo in photos %}
+    <p>{{ photo }}</p>
+    <img src="{{ photo }}" alt="User Image">
+{% endfor %}
+</body>
+</html>

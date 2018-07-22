@@ -4,7 +4,7 @@ import face_recognition
 
 class Training():
 
-    def __init__(self, directory="dataset"):
+    def __init__(self, directory="static/dataset"):
         self.directory = directory
         self.known_face_encodings = []
         self.known_face_names = []
@@ -34,14 +34,19 @@ class Training():
             "names": self.known_face_names
         }
         pickle.dump(self.dictionary, open(name, "wb"))
+        print("[INFO]Model {} saved correctly".format(name))
 
     def load(self, name="facesDB.p"):
         self.dictionary = pickle.load(open(name, "rb"))
         self.known_face_encodings = self.dictionary["encodings"]
         self.known_face_names = self.dictionary["names"]
+        print("[INFO]Model {} loaded correctly".format(name))
 
     def get_encodings(self):
         return self.known_face_encodings
 
     def get_names(self):
         return self.known_face_names
+
+    def get_directory(self):
+        return self.directory
