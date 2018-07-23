@@ -1,9 +1,17 @@
 <html>
   <head>
-    <title>Video Streaming Demonstration</title>
+      <title>Cam</title>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
   </head>
   <body>
-    <h1>Video Streaming Demonstration</h1>
-    <img src="{{ url_for('camera') }}">
+      <h1>Cam</h1>
+      <img src="{{ url_for('camera') }}" id="image">
+      <button onclick="snap()">Snap</button>
+  <script>
+      function snap(){
+          $.get("/snap");
+      }
+  </script>
   </body>
 </html>

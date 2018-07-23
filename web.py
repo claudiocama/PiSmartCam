@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, flash
 import cv2
 import face_recognition
 import training
-import os, shutil
+import os, shutil, time
 
 train_model = training.Training()
+
+photo = False
 
 app = Flask(__name__)
 
@@ -15,10 +17,15 @@ def index():
     return render_template('index.html')
 
 
-def get_frame():
+def get_cam():
+    global photo
+    global video
+    global fourcc
+    global out
+
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
-    i = 1
+
     while True:
         known_face_encodings = train_model.get_encodings()
         known_face_names = train_model.get_names()
@@ -34,9 +41,7 @@ def get_frame():
             left *= 4
             # See if the face is a match for the known face(s)
             matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-
             name = "Unknown"
-
             # If a match was found in known_face_encodings, just use the first one.
             if True in matches:
                 first_match_index = matches.index(True)
@@ -49,17 +54,36 @@ def get_frame():
             cv2.rectangle(frame, (left, top + 35), (right, top), (0, 255, 0), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left, top + 25), font, 1.0, (0, 0, 0), 1)
-        frame_encoded = (cv2.imencode('.jpg', frame)[1]).tostring()
+            if photo:
+                cv2.imwrite("test.jpg", frame)
+        return frame
+
+
+def get_frame():
+    while True:
+        try:
+            frame = get_cam()
+            frame_encoded = (cv2.imencode('.jpg', frame)[1]).tostring()
+        except Exception:
+            time.sleep(0.5)
+            frame_encoded = b''
         yield (b'--frame\r\n'
                b'Content-Type: text/plain\r\n\r\n' + frame_encoded + b'\r\n')
-        i += 1
 
-    del (camera)
 
 
 @app.route('/camera')
 def camera():
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/snap')
+def snap():
+    global photo
+    photo = True
+    time.sleep(1)
+    photo = False
+    return ""
 
 
 @app.route('/train', methods=['GET', 'POST'])
@@ -77,6 +101,11 @@ def train():
                 shutil.rmtree(train_model.get_directory() + "/" + user_selected)
             elif "Train" in request.form:
                 train_model.train()
+    if request.args.get("name"):
+        if not os.path.exists("static/dataset/"+request.args.get("name")):
+            os.mkdir("static/dataset/"+request.args.get("name"))
+        else:
+            return "The folder already exists"
     users = os.listdir(train_model.get_directory() + "/")
     return render_template('train.html', users=users)
 

@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Train</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
+<script>
+function add_user(){
+    var person = prompt("Please enter the name", "Name");
+    $.get("?name="+person);
+}
+</script>
 <form action= "/train" method="POST">
 <select name=get_user>
 
@@ -14,7 +21,8 @@
 
 </select>
 <input type="submit" name="View" value="View Photos">
-<input type="submit" name="Del" style="color:red" value="Delete"><BR>
+<button onclick="add_user()">Add User</button>
+<input type="submit" name="Del" style="color:red" value="Delete User"><BR>
 <input type="submit" name="Train" style="color:green" value="Train">
 </form>
 <BR>
