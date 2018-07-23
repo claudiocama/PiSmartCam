@@ -3,7 +3,7 @@ from flask import Flask, render_template, Response, request, flash
 import cv2
 import face_recognition
 import training
-import os, shutil, time
+import os, shutil, time, hashlib
 
 train_model = training.Training()
 
@@ -31,6 +31,8 @@ def get_cam():
         rgb_small_frame = small_frame[:, :, ::-1]
         face_locations = face_recognition.face_locations(rgb_small_frame)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        if photo:
+            cv2.imwrite("temp.jpg", frame)
         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
             top *= 4
             right *= 4
@@ -51,8 +53,6 @@ def get_cam():
             cv2.rectangle(frame, (left, top + 35), (right, top), (0, 255, 0), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left, top + 25), font, 1.0, (0, 0, 0), 1)
-            if photo:
-                cv2.imwrite("test.jpg", frame)
         return frame
 
 
@@ -80,6 +80,14 @@ def snap():
     photo = True
     time.sleep(1)
     photo = False
+    time.sleep(0.5)
+    name = hashlib.md5(str.encode(str(time.time()))).hexdigest() + ".jpg"
+    if request.args.get("name"):
+        if not os.path.exists("static/dataset/" + request.args.get("name")):
+            print("[INFO]Creating a new User ({})".format(request.args.get("name")))
+            os.mkdir("static/dataset/" + request.args.get("name"))
+    shutil.move("temp.jpg", "static/dataset/" + request.args.get("name") + "/" + name)
+    print("[INFO]{} added to {}".format(name, request.args.get("name")))
     return ""
 
 
@@ -100,6 +108,7 @@ def train():
                 train_model.train()
     if request.args.get("name"):
         if not os.path.exists("static/dataset/"+request.args.get("name")):
+            print("[INFO]Creating a new User ({})".format(request.args.get("name")))
             os.mkdir("static/dataset/"+request.args.get("name"))
         else:
             return "The folder already exists"

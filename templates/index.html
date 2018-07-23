@@ -10,7 +10,8 @@
       <button onclick="snap()">Snap</button>
   <script>
       function snap(){
-          $.get("/snap");
+          var person = prompt("Who is he?", "Name");
+          $.get("/snap?name="+person);
       }
   </script>
   </body>
