@@ -19,9 +19,6 @@ def index():
 
 def get_cam():
     global photo
-    global video
-    global fourcc
-    global out
 
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
