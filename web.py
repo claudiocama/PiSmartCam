@@ -95,19 +95,32 @@ def snap():
 
 @app.route('/train', methods=['GET', 'POST'])
 def train():
-    users = os.listdir(train_model.get_directory() + "/")
+    users = os.listdir(train_model.get_dataset_directory() + "/")
+    models = os.listdir(train_model.get_models_directory() + "/")
     if request.method == 'POST':
         if "get_user" in request.form:
             user_selected = request.form["get_user"]
+            model_selected = ""
             if 'View' in request.form:
                 photos = []
-                for photo in os.listdir(train_model.get_directory() + "/" + user_selected):
-                    photos.append(train_model.get_directory() + "/" + user_selected + "/" + photo)
-                return render_template('train.html', users=users, photos=photos, user_selected=user_selected, number_of_images=train_model.get_number_of_images())
+                for photo in os.listdir(train_model.get_dataset_directory() + "/" + user_selected):
+                    photos.append(train_model.get_dataset_directory() + "/" + user_selected + "/" + photo)
+                return render_template('train.html', users=users, models=models, photos=photos, user_selected=user_selected, model_selected=model_selected, number_of_images=train_model.get_number_of_images(), active_model=train_model.get_model_name())
             elif "Del" in request.form:
-                shutil.rmtree(train_model.get_directory() + "/" + user_selected)
+                shutil.rmtree(train_model.get_dataset_directory() + "/" + user_selected)
             elif "Train" in request.form:
                 train_model.train()
+
+        if "get_model" in request.form:
+            model_selected = request.form["get_model"]
+            if "Del_model" in request.form:
+                os.remove(train_model.get_models_directory() + "/" + model_selected)
+                return "Model deleted"
+            elif "Load_model" in request.form:
+                train_model.load(name=model_selected)
+            return render_template('train.html', users=users, models=models,
+                                   model_selected=model_selected, number_of_images=train_model.get_number_of_images(), active_model=train_model.get_model_name())
+
     if request.args.get("name"):
         if not os.path.exists("static/dataset/"+request.args.get("name")):
             print("[INFO]Creating a new User ({})".format(request.args.get("name")))
@@ -117,18 +130,28 @@ def train():
     if request.args.get("delete"):
         os.remove(request.args.get("delete"))
         print("[INFO]Image deleted correctly")
-    users = os.listdir(train_model.get_directory() + "/")
-    return render_template('train.html', users=users, number_of_images=train_model.get_number_of_images())
+    users = os.listdir(train_model.get_dataset_directory() + "/")
+    models = os.listdir(train_model.get_models_directory() + "/")
+    return render_template('train.html', users=users, models=models, number_of_images=train_model.get_number_of_images(), active_model=train_model.get_model_name())
+
 
 @app.route('/train/deleted', methods=['GET', 'POST'])
 def image_deleted():
     return "Image deleted"
 
-@app.route('/train/deletemodel', methods=['GET', 'POST'])
-def delete_model():
-    print("OK")
+
+@app.route('/train/emptymodel', methods=['GET', 'POST'])
+def empty_model():
     train_model.empty_model()
     return "Model empty"
+
+
+@app.route('/train/savemodel', methods=['GET', 'POST'])
+def save_model():
+    if request.args.get("name"):
+        train_model.save(name=request.args.get("name")+".p")
+        return "Model {} saved correctly".format(request.args.get("name")+".p")
+
 
 def allowed_file(filename):
     return '.' in filename and \

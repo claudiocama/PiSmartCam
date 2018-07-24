@@ -17,8 +17,12 @@ function delete_image(img_name){
         location.href = '/train/deleted';
     }, 500)
 }
-function delete_model(){
-    $.get("/train/deletemodel");
+function empty_model(){
+    $.get("/train/emptymodel");
+}
+function save_model(){
+    var name = prompt("Please enter the name for the model", "Name");
+    $.get("/train/savemodel?name="+name);
 }
 </script>
 <form action= "/train" method="POST">
@@ -31,11 +35,25 @@ function delete_model(){
 </select>
 <input type="submit" name="View" value="View Photos">
 <button onclick="add_user()">Add User</button>
-<button onclick="delete_model()">Delete model</button>
 <input type="submit" name="Del" style="color:red" value="Delete User"><BR>
 <input type="submit" name="Train" style="color:green" value="Train">
 </form>
-<p>Currently your training model contains {{ number_of_images }} photos</p>
+<BR>
+<form action= "/train" method="POST">
+<p>Models:</p>
+<select name=get_model>
+
+    {% for model in models %}
+    <option value="{{model}}" {% if model_selected==model %} selected="selected"{% endif %}>{{model}}</option>"
+    {% endfor %}
+</select>
+<button onclick="save_model()">Save model</button>
+<input type="submit" name="Load_model" style="color:green" value="Load Model">
+<button onclick="empty_model()">Empty model</button>
+<input type="submit" name="Del_model" style="color:red" value="Delete Model"><BR>
+</form>
+<p>Currently your training model ({{ active_model }}) contains {{ number_of_images }} photos</p>
+
 <BR>
 {% for photo in photos %}
     <p>{{ photo }} <button onclick="delete_image('{{ photo }}')">Delete this photo</button></p>
