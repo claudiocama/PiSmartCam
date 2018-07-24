@@ -42,6 +42,10 @@ class Training():
         self.known_face_names = self.dictionary["names"]
         print("[INFO]Model {} loaded correctly".format(name))
 
+    def empty_model(self):
+        self.known_face_encodings = []
+        self.known_face_names = []
+
     def get_encodings(self):
         return self.known_face_encodings
 
@@ -50,3 +54,7 @@ class Training():
 
     def get_directory(self):
         return self.directory
+
+    def get_number_of_images(self):
+        return len(self.known_face_encodings)
+

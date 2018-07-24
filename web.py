@@ -7,6 +7,8 @@ import os, shutil, time, hashlib
 
 train_model = training.Training()
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 photo = False
 
 app = Flask(__name__)
@@ -101,7 +103,7 @@ def train():
                 photos = []
                 for photo in os.listdir(train_model.get_directory() + "/" + user_selected):
                     photos.append(train_model.get_directory() + "/" + user_selected + "/" + photo)
-                return render_template('train.html', users=users, photos=photos, user_selected=user_selected)
+                return render_template('train.html', users=users, photos=photos, user_selected=user_selected, number_of_images=train_model.get_number_of_images())
             elif "Del" in request.form:
                 shutil.rmtree(train_model.get_directory() + "/" + user_selected)
             elif "Train" in request.form:
@@ -112,8 +114,65 @@ def train():
             os.mkdir("static/dataset/"+request.args.get("name"))
         else:
             return "The folder already exists"
+    if request.args.get("delete"):
+        os.remove(request.args.get("delete"))
+        print("[INFO]Image deleted correctly")
     users = os.listdir(train_model.get_directory() + "/")
-    return render_template('train.html', users=users)
+    return render_template('train.html', users=users, number_of_images=train_model.get_number_of_images())
+
+@app.route('/train/deleted', methods=['GET', 'POST'])
+def image_deleted():
+    return "Image deleted"
+
+@app.route('/train/deletemodel', methods=['GET', 'POST'])
+def delete_model():
+    print("OK")
+    train_model.empty_model()
+    return "Model empty"
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def extension(filename):
+    return filename.rsplit('.', 1)[1].lower()
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(request.url)
+
+        file = request.files['file']
+        name = request.form["name"]
+
+        if name == "":
+            return "You must write the name"
+
+        if file.filename == '':
+            return redirect(request.url)
+
+        if file and allowed_file(file.filename):
+            if not os.path.exists("static/dataset/" + name):
+                print("[INFO]Creating a new User ({})".format(request.args.get("name")))
+                os.mkdir("static/dataset/" + name)
+            ext = extension(file.filename)
+            filename = hashlib.md5(str.encode(str(time.time()))).hexdigest() + ".{}".format(ext)
+            file.save("static/dataset/" + name + "/" + filename)
+            return "Upload completed"
+
+    return '''
+        <!doctype html>
+        <title>Upload a picture</title>
+        <h1>Upload a picture</h1>
+        <form method="POST" enctype="multipart/form-data">
+          <input type="file" name="file">
+          <input type="text" name="name" value="Name">
+          <input type="submit" value="Upload">
+        </form>
+        '''
 
 
 if __name__ == '__main__':

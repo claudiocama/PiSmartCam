@@ -11,6 +11,15 @@ function add_user(){
     var person = prompt("Please enter the name", "Name");
     $.get("?name="+person);
 }
+function delete_image(img_name){
+    $.get("?delete="+img_name);
+    window.setTimeout(function deleted(){
+        location.href = '/train/deleted';
+    }, 500)
+}
+function delete_model(){
+    $.get("/train/deletemodel");
+}
 </script>
 <form action= "/train" method="POST">
 <select name=get_user>
@@ -22,12 +31,14 @@ function add_user(){
 </select>
 <input type="submit" name="View" value="View Photos">
 <button onclick="add_user()">Add User</button>
+<button onclick="delete_model()">Delete model</button>
 <input type="submit" name="Del" style="color:red" value="Delete User"><BR>
 <input type="submit" name="Train" style="color:green" value="Train">
 </form>
+<p>Currently your training model contains {{ number_of_images }} photos</p>
 <BR>
 {% for photo in photos %}
-    <p>{{ photo }}</p>
+    <p>{{ photo }} <button onclick="delete_image('{{ photo }}')">Delete this photo</button></p>
     <img src="{{ photo }}" alt="User Image">
 {% endfor %}
 </body>
